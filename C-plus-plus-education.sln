@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{42B6C2C7-E9DD-43B0-8F50-2D30CEA5AE55}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "class_ugol", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{42B6C2C7-E9DD-43B0-8F50-2D30CEA5AE55}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "task-1", "task-1\task-1.vcxproj", "{42A3DF04-604B-45D0-9017-C2CF00568B48}"
 EndProject
