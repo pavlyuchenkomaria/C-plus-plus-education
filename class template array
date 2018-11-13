@@ -1,0 +1,384 @@
+// класс-шаблон - это класс, определяющий все 
+// алгоритмы, но фактический тип данных является параметром, 
+// опреде­ляющимся при создании класса.
+// Классы-шаблоны полезны тогда, когда класс содержит логику,
+// допускающую значительные обобщения.
+//#include "pch.h"
+#include <iostream>
+#include <conio.h>
+using namespace std;
+
+template <class T> class Array
+{
+	T *a;
+	int n;
+	void Shift(T pos) {  //сдвиг массива влево, начиная с позиции pos;
+		int *p;
+		p = new T[n - 1];
+		for (int i = 0; i < pos; i++) {
+			p[i] = a[i];
+		}
+		for (int i = pos; i < n; i++) {
+			p[i] = a[i + 1];
+		}
+		delete[]a;
+		a = p;
+	}
+
+public:
+	Array();
+	Array(int m);//m-число элементов массива, наз-ся конструктор с целым аргументом;
+	Array(T *b, int m);//конструктор с аргументом массив
+	Array(Array<T> &x);//конструктор копирования
+	~Array();
+	void Scan(int m);//ввод массива из m элементов;
+	void Print();//вывод массива
+	T & operator[] (int i);// считывание элемента по позиции с возможностью изменения элемента;
+	int Find(T key);// поиск элемента key в массиве, возвращает индекс key или -1;
+	Array<T> & operator = (Array<T> &); // операция присвоения
+	Array<T> operator += (T key); // добавление key в конец массива
+	Array<T> operator + (T key); //формирует новый массив
+	Array<T> operator += (Array<T>); // добавление массива в конец сущ-его
+	Array<T> operator + (Array<T>); // создание нового путем прибавления старого к сущ-ему
+	Array<T> operator -= (T pos); // удаление элемента с позиции pos
+	Array<T> operator- (T key); // удаление по ключу key
+	bool operator == (Array<T>); // проверка равенства 
+	bool operator != (Array<T>); // проверка неравенства 
+	int max(); // нахождение максимума (индекса или самого)
+	int min(); // нахождение минимума (индекса или самого)
+	void Sorting(); // любая сортировка
+	template <class T> friend ostream &operator <<(ostream&r, Array<T>&x); // перегрузка оператора потокового вывода
+	template <class T> friend istream &operator >>(istream&r, Array<T>&x); // перегрузка оператора потокового ввода
+};
+
+template <class T> Array<T>::Array() {
+	a = new T[1];
+	n = 1;
+} // n = 1 - это инициализация член данных в массиве (там было n)
+
+template <class T> Array<T>::Array(int m) {
+	a = new T[m]; n = m;
+}
+
+template <class T> Array<T>::Array(T *b, int m) {
+	a = new T[m]; n = m;
+	for (int i = 0; i < n; i++) {
+		a[i] = b[i];
+	}
+}
+
+template <class T> Array<T>::Array(Array <T> &x) {
+	n = x.n;
+	a = new T[n];
+	for (int i = 0; i < n; i++) {
+		a[i] = x.a[i];
+	}
+}
+
+template <class T> Array<T>::~Array() {
+	delete[] a;
+}
+
+template <class T> void Array<T>::Scan(int m) {
+	if (n != m) {
+		delete[]a;
+		n = m;
+		a = new T[n];
+	}
+	std::cout << "input " << m << " elements: " << endl;
+	for (int i = 0; i < m; i++) {
+		std::cin >> a[i];
+	}
+}
+
+template <class T> void Array<T>::Print() {
+	for (int i = 0; i < n; i++) {
+		std::cout << a[i] << ' ';
+	}
+	std::cout << endl;
+}
+
+template <class T> T & Array<T>::operator[](int i) {
+	if (i < 0 || i >(n - 1)) {
+		std::cout << "error!" << endl;
+		return a[0];
+	}
+	else return a[i];
+}
+
+template <class T> int Array<T>::Find(T key) {
+	for (int i = 0; i < n; i++)
+	{
+		if (a[i] == key)
+			return i;
+	}
+	return -1;
+}
+
+template <class T> Array<T> & Array<T>::operator= (Array<T> &s) {
+	if (this != &s) {
+		delete[] a;
+		n = s.n;
+		a = new T[n];
+		for (int i = 0; i < n; i++) {
+			a[i] = s.a[i];
+		}
+	}
+	return *this;
+}
+
+template <class T> Array<T> Array<T>::operator += (T key) {
+	T *t = new T[n + 1];
+	for (int i = 0; i < n; i++) {
+		t[i] = a[i];
+	}
+	delete[] a;
+	t[n] = key;
+	n = n + 1;
+	a = new T[n + 1];
+	a = t;
+	return  *this;
+}
+
+template <class T> Array<T> Array<T>::operator+ (T key) {
+	Array<T> t(n + 1);
+	for (int i = 0; i < n; i++) {
+		t.a[i] = a[i];
+	}
+	t.a[n] = key;
+	return t;
+}
+
+template <class T> Array<T> Array<T>::operator += (Array<T> p) {
+	for (int i = 0; i < p.n; i++)
+	{
+		*this += p.a[i];
+	}
+	return *this;
+}
+
+template <class T> Array<T> Array<T>::operator+ (Array<T> p) {
+	Array<T> t(n + p.n);
+	for (int i = 0; i < n; i++) {
+		t.a[i] = a[i];
+	}
+	for (int i = n, j = 0; j < n, i < n + p.n; j++, i++) {
+		t.a[i] = p.a[j];
+	}
+	return t;
+}
+
+template <class T> Array<T> Array<T>::operator-= (T pos) {
+	T *t = new T[n - 1];
+	for (int i = 0; i < pos; i++) {
+		t[i] = a[i];
+	}
+	for (int i = pos; i < n - 1; i++) {
+		t[i] = a[i + 1];
+	}
+	delete[]a;
+	a = new T[n - 1];
+	for (int i = 0; i < n - 1; i++) {
+		a[i] = t[i];
+	}
+	delete[]t;
+	n--;
+	return *this;
+}
+
+template <class T> Array<T> Array<T>::operator- (T key)
+{
+	int pos_key;
+	Array<T> t(n - 1);
+	for (int i = 0; i < n; i++)
+		if (a[i] == key)
+		{
+			pos_key = i; break;
+		}
+
+	for (int i = 0; i < pos_key; i++)
+		t.a[i] = a[i];
+
+	for (int i = pos_key + 1; i < n; i++)
+		t.a[i - 1] = a[i];
+
+	delete[]a;
+	a = new T[n - 1];
+	for (int i = 0; i < n - 1; i++)
+	{
+		a[i] = t.a[i];
+	}
+	n--;
+	return *this;
+}
+
+template <class T> bool Array<T>::operator == (Array<T> p) {
+	if (n == p.n) {
+		for (int i = 0; i < n; i++) {
+			if (a[i] == p.a[i]) {
+				return true;
+			}
+			return false;
+		}
+	}
+}
+
+template <class T> bool Array<T>::operator != (Array<T> p) {
+	if (n != p.n) {
+		return true;
+	}
+	else {
+		for (int i = 0; i < n; i++) {
+			if (a[i] == p.a[i]) {
+				return false;
+			}
+			return true;
+		}
+	}
+}
+
+template <class T> int Array<T>::max() {
+	T current_max = a[0];
+	int i_max;
+	for (int i = 0; i < n; i++) {
+		if (a[i] >= current_max) {
+			current_max = a[i];
+			i_max = i;
+		}
+	}
+	return i_max;
+}
+
+template <class T> int Array<T>::min() {
+	T current_min = a[0];
+	int i_min;
+	for (int i = 0; i < n; i++) {
+		if (a[i] <= current_min) {
+			current_min = a[i];
+			i_min = i;
+		}
+	}
+	return i_min;
+}
+
+template <class T> void Array<T>::Sorting() {
+	int i, k, c;
+	for (k = n - 1; k > 0; k--) {
+		for (i = 0; i < k; i++) {
+			if (a[i] > a[i + 1]) {
+				c = a[i];
+				a[i] = a[i + 1];
+				a[i + 1] = c;
+			}
+		}
+	}
+}
+
+template <class T> ostream & operator <<(ostream&r, Array<T> &x) {
+	x.Print();
+	return r;
+}
+
+template <class T> istream & operator >>(istream&r, Array<T> &x) {
+	x.Scan(x.n);
+	return  r;
+}
+
+
+void main()
+{
+	//konstruktor probnii
+	int l = 0;
+	Array<char> t(l);
+	// scan
+	int v = 0;
+	cout << "input size of array: ";
+	cin >> v;
+	t.Scan(v);
+	cout << endl;
+	// print
+	cout << "your array t is: ";
+	t.Print();
+	cout << endl;
+	// []
+	int i = 0;
+	cout << "input i for checking []: ";
+	cin >> i;
+	cout << "t[" << "i] is: " << t[i] << endl;
+	cout << endl;
+
+	char key;
+	cout << "input key: ";
+	cin >> key;
+	// find
+	cout << "index of key is: " << t.Find(key) << endl;
+	cout << endl;
+
+	int k = 0;
+	cout << "input size of array for checking = : ";
+	cin >> k;
+	Array<char> p(k);
+	p.Scan(k);
+	// =
+	t = p;
+	cout << "result of operator = : ";
+	t.Print();
+	cout << endl;
+	// += key
+	t += key;
+	cout << "result of operator += KEY : ";
+	t.Print();
+	cout << endl;
+	// + key
+	cout << "result of operator + KEY : ";
+	(t + key).Print();
+	cout << endl;
+	// += array
+	t += p;
+	cout << "result of operator += ARRAY : ";
+	t.Print();
+	cout << endl;
+	// + array
+	cout << "result of operator + ARRAY : ";
+	Array <char> s=t+p;
+	s.Sorting();
+	s.Print();
+	cout << endl;
+	// -= pos
+	int pos = 0;
+	cout << "input pos";
+	cin >> pos;
+	t -= pos;
+	"result of operator -= ARRAY : ";
+	t.Print();
+	cout << endl;
+	// - key
+	"result of operator -= ARRAY : ";
+	(t - key).Print();
+	cout << endl;
+	// ==
+	if (t == p)
+		cout << "t == p" << endl;
+	else
+		cout << "t != p" << endl;
+	// !=
+	if (t != p)
+		cout << "t != p" << endl;
+	else
+		cout << "t == p" << endl;
+	// max
+	cout << "index of max is: " << t.max();
+	cout << endl;
+	// min
+	cout << "index of min is: " << t.min();
+	cout << endl;
+	// friend streams
+	cout << "There is example of cin and cout: " << endl;
+	int size = 0;
+	cout << "Enter size of example's array: " << endl;
+	cin >> size;
+	Array<char> x(size);
+	cin >> x;
+	cout << x;
+	_getch();
+}
