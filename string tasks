@@ -1,0 +1,93 @@
+1 task
+#include <iostream>
+#include <conio.h>
+#include <string.h>
+
+int Symbol(char s[], int pos)
+{int j;
+ for(j=pos; s[j] && s[j]==' '; j++);
+ return j;
+}
+
+int Space(char s[], int pos)
+{int j;
+ for(j=pos; s[j] && s[j]!=' '; j++);
+ return j;
+}
+
+void main()
+{
+	int i, j, n, slovo = 0;
+	char s[80];
+	std::cout << "enter: ";
+	gets(s);
+	i=0;
+	while(s[i])
+	  {j=Symbol(s, i);
+	   if (s[j]!='\0') slovo++;
+	   i=Space(s,j);
+	  }
+	std::cout << "number of words: " << slovo;
+	_getch();
+}
+	
+2 task
+
+#include <iostream>
+#include <conio.h>
+#include <string.h>
+using namespace std;
+int Symbol(char s[], int pos)
+{int j;
+for(j=pos; s[j] && s[j]==' '; j++);
+ return j;
+}
+
+int Space(char s[], int pos)
+{int j;
+for(j=pos; s[j] && s[j]!=' '; j++);
+ return j;
+}
+
+int Copy(char s[], char **masslov, int i, int k)
+{int j;
+for (j=0; s[i] && s[i]!=' '; i++, j++)
+	{masslov[k][j]=s[i];}
+masslov[k][j]='\0';
+return i;
+}
+
+int Find(char s[], char **masslov, int i, int k)
+{int index_strroki = -1;
+int j;
+for (j=0; s[i] && s[i]!=' '; i++, j++);
+if (masslov[k][j-1] == 'a') 
+	{index_strroki = k;}
+return index_strroki;
+}
+
+void main()
+{char s[80], **mas;
+  puts("input string");
+  gets_s(s);
+  int i,m, t;
+  mas = new char* [40];
+  for (int i=m=0; s[i]; m++)
+       {mas[m]= new char[30];
+         i=Symbol(s, i);
+         i=Copy(s, mas, i, m);
+        }
+  for (int i=0; i<m; i++)
+	  puts(mas[i]);
+  puts("");
+  for (i=0; i<m; i++)
+	{t=strlen(mas[i]);
+     if(mas[i][t-1]=='a') puts(mas[i]);
+    }
+     
+  /*for (int i=m=0; s[i]; m++)
+	  i = Find(s, mas, i, m);
+  if (i = -1) cout << "no word";
+  else cout << "number of your word is" << i;*/
+  _getch();
+}
