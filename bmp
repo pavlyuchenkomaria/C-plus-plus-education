@@ -1,0 +1,77 @@
+
+#include "pch.h"
+#include <iostream>
+#include <conio.h>
+#include <string>
+using namespace std;
+
+// p - pattern, s - string (our text)
+// m - number of characters in pattern
+// TAB - our table
+
+void eto_budet_tab(int TAB[256], const char *p, int size_of_p)
+{
+	int m = strlen(p);
+	for (int i = 0; i < 256; i++)
+	{
+		TAB[i] = m;
+	}
+	for (int i = 0; i < size_of_p - 1; i++)
+	{
+		TAB[(int) p[i]] = m - 1 - i; // (int) - convert from ascii
+	}
+}
+int helpmegodfindthisstring(const char *s, const char *p)
+{
+	int m = strlen(p);
+	int n = strlen(s);
+	int TAB[256];
+
+	eto_budet_tab(TAB, p, m); // made TAB
+	
+	int i = m - 1, k, j = m - 1;
+	while (i < n)
+	{
+		if (j >= 0)
+		{
+			k = i;
+			j = m - 1;
+			while (j >= 0)
+			{
+				if (s[k] == p[j])
+				{
+					j--;
+					k--;
+				}
+				else
+				{
+					j = m - 1;
+					i += TAB[s[k]];
+					break;
+				}
+			}
+		}
+		else break;
+	}
+	if (j >= 0)
+	{
+		return -1;
+	}
+	return i + 1 - m;
+}
+
+void main()
+{
+	std::string str;
+	std::cout << "Enter your text: ";
+	std::getline(std::cin, str);
+	const char* str1 = str.c_str();
+	
+	std::string pat;
+	std::cout << "Enter your pattern: ";
+	std::getline(std::cin, pat);
+	const char* pat1 = pat.c_str();
+	
+	int a = helpmegodfindthisstring(str1, pat1);
+	cout << "pattern occurs at shift = " << a;
+}
