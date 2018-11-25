@@ -1,0 +1,69 @@
+
+#include "pch.h"
+#include <iostream>
+#include <conio.h>
+#include <string>
+using namespace std;
+
+void eto_budet_newJ(int newJ[256], const char *p)
+{
+	int j = 0, k = -1, m = strlen(p);
+	newJ[0] = -1;
+
+	while (j < m - 1)
+	{
+		while (k >= 0 && p[j] != p[k])
+		{
+			k = newJ[k];
+		}
+		k++;
+		j++;
+
+		if (p[j] == p[k])
+		{
+			newJ[j] = newJ[k];
+		}
+		else newJ[j] = k;
+	}
+}
+
+int helpmegodfindthisstring(const char *s, const char *p)
+{
+	int m = strlen(p);
+	int n = strlen(s);
+	int newJ[256];
+
+	eto_budet_newJ(newJ, p); // made newJ
+
+	int i = 0, j = 0;
+	while (j < m)
+	{
+		if (i < n)
+		{
+			while (j >= 0 && s[i] != p[j])
+			{
+				j = newJ[j];
+			}
+			i++;
+			j++;
+		}
+		else return -1;
+	}
+	return (i - m);
+}
+
+void main()
+{
+	std::string str;
+	std::cout << "Enter your text: ";
+	std::getline(std::cin, str);
+	const char* str1 = str.c_str();
+
+	std::string pat;
+	std::cout << "Enter your pattern: ";
+	std::getline(std::cin, pat);
+	const char* pat1 = pat.c_str();
+
+	int a = helpmegodfindthisstring(str1, pat1);
+	cout << "pattern occurs at shift = " << a;
+}
