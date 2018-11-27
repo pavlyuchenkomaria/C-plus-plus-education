@@ -1,0 +1,72 @@
+#include "pch.h"
+#include <iostream>
+#include <conio.h>
+using namespace std;
+
+// есть две стадии сортировки: 
+//   1. построение пирамиды
+//   2. собственно сортировка
+
+void Sift(int *a, int n, int i) // тут происходит просеивание i-того элемента массива а
+{
+	int j = 2 * i + 1;
+	int x = a[i];
+	int f = 1; // реализуем без обмена на каждом шаге, с флагом f
+	while (j < n && f)
+	{
+		if ((j + 1) < n && a[j + 1] > a[j])
+		{
+			j++;
+		}
+		if (a[j] > x)
+		{
+			a[i] = a[j];
+			i = j;
+			j = 2 * i + 1;
+		}
+		else f = 0;
+	}
+	a[i] = x;
+}
+
+void egipetskaya_sila(int *a, int n)
+{
+	//строим пирамиду из элементов a[0], a[1],…,a[n-1].
+	for (int i = n / 2 - 1; i >= 0; i--)
+	{
+		Sift(a, n, i);
+	}
+
+	for (int i = n - 1; i >= 0; i--) // просеиваем элемент через пирамиду
+	{
+		int variable = a[0]; // меняем последний с нулевым и про него забываем
+		a[0] = a[i];
+		a[i] = variable;
+		Sift(a, i, 0);
+	}
+}
+
+void main()
+{
+	int *a, n;
+
+	cout << "enter n" << endl;
+	cin >> n;
+	a = new int[n];
+
+	for (int i = 0; i < n; i++)
+		a[i] = rand() % 30;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+	cout << endl;
+
+	egipetskaya_sila(a, n);
+
+	cout << "result of Heapsort: ";
+	cout << endl;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+
+	delete[] a;
+	//_getch();
+}
