@@ -1,0 +1,73 @@
+
+#include "pch.h"
+#include <iostream>
+#include <conio.h>
+using namespace std;
+
+void soooo_quickly(int *a, int n)
+{
+	int l = 0; // left border
+	int r = n-1; // right border
+	int x = a[(l + r) / 2]; // эталонный элемент
+
+	if (l >= r) 
+  { 
+    return;
+  }
+	while (l < r)
+	{
+
+		while (a[l] < x)
+		{
+			l++;
+		}
+		while (a[r] > x)
+		{
+			r--;
+		}
+		if (l <= r)
+		{
+			int var = a[l];
+			a[l] = a[r];
+			a[r] = var;
+			l++;
+			r--;
+		}
+	}
+	
+	if (r > 0) // рекурсивный вызов сортировки для левой части
+	{
+		soooo_quickly(a, r+1);
+	}
+	
+	if (l < n) // рекурсивный вызов сортировки для правой части
+	{
+		soooo_quickly(a+l, n-l);
+	}
+
+}
+
+void main()
+{
+	int *a, n;
+
+	cout << "enter n here: " << endl;
+	cin >> n;
+	a = new int[n];
+
+	for (int i = 0; i < n; i++)
+		a[i] = rand() % 30;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+	cout << endl;
+
+	soooo_quickly(a, n);
+
+	cout << "result of Quick Sort: ";
+	cout << endl;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+
+	delete[] a;
+	//_getch();
+}
