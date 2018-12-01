@@ -68,5 +68,5 @@ void main()
 		cout << a[i] << ' ';
 
 	delete[] a;
-	//_getch();
+	_getch();
 }
