@@ -1,0 +1,118 @@
+
+
+#include "pch.h"
+#include <iostream>
+#include <conio.h>
+#include <ctime>
+using namespace std;
+
+ //ищем максимальное число, чтобы найти 
+ //значение старшего значащего разряда
+int find_max(int *a, int n)
+{
+	int max = a[0];
+	for (int i = 1; i < n; i++)
+	{
+		if (a[i] > max)
+			max = a[i];
+	}
+	return max;
+}
+
+//int имеет 4 байта, это 32 бита
+
+// тут делается битовое И с маской (1 << позиция)
+// var - это число, pos - позиция, на которой мы проверяем
+// возвращает 0, если бит 0, и больше 0, если бит 1
+int CHECK_BIT(int var,int pos)
+{
+	return ((var) & (1 << (pos)));
+}
+// поиск старшего значащего разряда среди всех чисел
+int star_raz(int *a, int n)
+{
+	int max = find_max(a, n);
+	int max_pos = 0;
+	for (int i = 0; i < 31; i++)
+	{
+		int s = CHECK_BIT(max, i);
+		if (s != 0)
+		{
+			 max_pos = i;
+		}
+	}
+	return max_pos;
+}
+
+void Bit(int *a, int n, int k)
+{
+	int l = 0; // left border
+	int r = n-1; // right border
+	
+	if (l >= r || k < 0)
+	{
+		return;
+	}
+
+	while (l <= r)
+	{
+		while (l <= r && CHECK_BIT(a[l], k) == 0)
+		{
+			l++;
+		}
+		while (l <= r && CHECK_BIT(a[r], k) != 0)
+		{
+			r--;
+		}
+		if (l <= r)
+		{
+			int var = a[l];
+			a[l] = a[r];
+			a[r] = var;
+			l++;
+			r--;
+			
+		}
+		
+	}
+	k--;
+
+	if (r > 0) 
+	{
+		Bit(a, r + 1, k);
+	}
+	if (l < n)
+	{
+		Bit(a + l, n - l, k);
+	}
+	
+
+}
+
+void main()
+{
+	srand(std::time(nullptr)); 
+	// использовать первое число - текущее время
+
+	int *a, n;
+
+	cout << "enter n here: " << endl;
+	cin >> n;
+	a = new int[n];
+
+	for (int i = 0; i < n; i++)
+		a[i] = rand() % 30;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+	cout << endl;
+	int k = star_raz(a, n);
+	Bit(a, n, k);
+
+	cout << "result of Bit Sort: ";
+	cout << endl;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+
+	delete[] a;
+	//_getch();
+}
