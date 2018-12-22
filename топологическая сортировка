@@ -1,0 +1,312 @@
+#include <cstdlib>
+#include <stdlib.h>
+#include "pch.h"
+#include <iostream>
+#include <conio.h>
+#include <ctime>
+
+using namespace std;
+
+//топологическая - в частично упорядоченном множестве - граф
+//если есть отношение - то есть ребро
+//его можно представить в виде бв - где 1 означает наличия ребра
+//но можно и через список спец вида.остальное в тетради.
+
+// A null pointer constant can be converted to any pointer type 
+// (or pointer-to-member type), which acquires a null pointer value.
+// This is a special value that indicates that the pointer is not pointing to any object.
+
+struct Uzel // структура узел - это описание вершины графа, у которой есть 4 элемента
+{
+	int key, count;
+	Uzel *next;
+	//внутри этой структуры мы определим другую, которая будет ссылаться на внешнюю
+	struct Trailer
+	{
+		Uzel *pointer;// ссылка на узел
+		Trailer *next;
+		Trailer() { pointer = 0; next = 0; } //конструктор, зануляющий значения
+	} *tr; // это ссылка на трейлер
+	Uzel()
+	{
+		key = 0; count = 0; next = 0; tr = 0;
+	}
+	void AddTrailer(Uzel*p); //добавление ссылки на узел
+							 //уменьшение и увеличените каунта
+	void ReduceCount();
+	void IncreaseCount();
+};
+
+
+void Uzel::AddTrailer(Uzel*p)
+{
+	Trailer *q = new Trailer; // заводим память под узел, указатель на него q
+	q->pointer = p;
+	q->next = tr; //то, на что указывает исходный 
+	tr = q;
+}
+
+void Uzel::ReduceCount()
+{
+	//нужен указатель, чтобы пробежать список трейлеров
+	Trailer *t = tr;
+	while (t != 0)
+	{
+		//смотрим что записано в поле поинтер - а там адрес узла, у которого надо изменить каунт
+		t->pointer->count--; //указ на поле оттуда указ на узел каунт и минус
+		t = t->next; //перхеход к след элементу трейлера
+	}
+}
+
+void Uzel::IncreaseCount() // о чем это, просто - на + менять?
+{
+	//нужен указатель, чтобы пробежать список трейлеров
+	Trailer *t = tr;
+	while (t != 0)
+	{
+		//смотрим что записано в поле поинтер - а там адрес узла, у которого надо изменить каунт
+		t->pointer->count++; //указ на поле оттуда указ на узел каунт и минус
+		t = t->next; //перхеход к след элементу трейлера
+	}
+}
+//основные функции одинаковые, прочитать про односвязный список
+struct Lider //структура лидер - это описание списка (самого графа)
+{
+	Uzel *head;// указатели на голову и на хвост
+
+	Lider();
+	// не должно быть функций, возвр значений типа лидер и присвоения одного лидера другому, чтобы не требовались к-ры копирования и оператора присвоения 
+	~Lider();
+	void Add_to_head(int x);
+	//при перестраивании в нью лд было добавление в хвост
+	void Add_to_tail(Uzel*);
+	void Del(Uzel*);// физическое исключение узла из списка,
+					//последнее действие это делит p, то есть уничтожаем память
+	void Exclude(Uzel*); // просто смещаем указатель на след элемент 
+						 // списка, а данный пропускаем
+						 // функ нахождения узла в списке, если такой есть, то вернется ссылка на него
+	Uzel *Find_key(int); // здесь * относится к типу возвр значения
+	Uzel *Find_count(int); //ищет нулевой ?
+						   //функция формирования списка лд
+	int FormLider();
+	//функция формирования списка нею лд
+	void SortLider(Lider&);
+	void clear();
+	bool Empty(); // пока не опустеет список лидер
+}
+;
+
+//void print_List(Uzel *p, int n) {
+//	int *res = new int[n];
+//	int i = 0;
+//	while (p != 0)
+//	{
+//		cout << p->key << "(" << p->count << ")" << " : ";
+//		while (p->tr != 0)
+//		{
+//			cout << p->tr->pointer->key << " ";
+//			p->tr = p->tr->next;
+//		}
+//		cout << endl;
+//		p = p->next;
+//	}
+//}
+
+Lider::Lider()
+{
+	head = new Uzel; // образовали узел, остальное нулевое
+}
+
+Lider::~Lider() // этого хватит или нужно что-то еще удалять ????
+{   cout <<"destructor";
+	clear();
+	delete head;
+}
+
+void Lider::Add_to_head(int x) // как бы создаем новый узел
+{
+	Uzel *ptr = new Uzel;
+	ptr->key = x;
+	
+	ptr->next = head->next; // указывает на след после фиктивной головы
+	head->next = ptr;
+}
+
+void Lider::Add_to_tail(Uzel*p) // берем целый узел и перемещаем его
+{
+	Uzel *ptr = head;
+	while (ptr->next != 0)
+	{
+		ptr = ptr->next;
+	}
+	ptr->next = p;
+}
+
+void Lider::Del(Uzel*p)
+{
+	if (p->tr != 0)
+	{
+		while (p->tr->next != 0)
+		{
+			Uzel::Trailer* tmp = p->tr->next;
+			p->tr->next = p->tr->next->next;
+			delete tmp;
+		}
+		delete p->tr;
+	}
+	Uzel *t = head;
+	while (t->next != p) t = t->next;
+	t->next = p->next;
+	delete p;
+}
+
+void Lider::Exclude(Uzel*p)
+{
+	Uzel *t = head;
+	while (t->next != p)
+	{
+		t = t->next;
+	}
+	t->next = p->next;
+	p->next = 0;
+}
+
+Uzel* Lider::Find_key(int l)
+{
+	Uzel *ptr = head->next;
+	while (ptr != 0)
+	{
+		if (ptr->key == l)
+		{
+			return ptr;
+		}
+		ptr = ptr->next;
+	}
+	return 0;
+}
+
+Uzel* Lider::Find_count(int l)
+{
+	Uzel*ptr = head->next;
+	while (ptr != 0)
+	{
+		if (ptr->count == l)
+		{
+			return ptr;
+		}
+		ptr = ptr->next;
+	}
+	return 0;
+}
+
+int Lider::FormLider()
+{
+	int n = 0, x, y; // x,y - наши пары
+					 //указатель, на узел, где в поле кей x,y
+	Uzel *px = new Uzel;
+	Uzel *py = new Uzel;
+	cout << "vvedi x,y: ";
+	cin >> x >> y;
+	while (x && y)
+	{
+		if (this->Find_key(x) == 0)
+		{
+			this->Add_to_head(x);
+			px = this->head->next;
+			n++; //создали узел, на нее хранит указатель пэикс, 
+				 // а хэднекст это указатель на вновь созданный узел 
+				 // если узел не нашли
+		}
+		else
+		{
+			px = this->Find_key(x);
+		}
+
+		if (this->Find_key(y) == 0) {
+			this->Add_to_head(y);
+			py = this->head->next;
+			n++; //создали узел, на нее хранит указатель пэикс, а хэднекст это указатель на вновь созхданный узел 9если узел не нашли
+		}
+		else {
+			py = this->Find_key(y);
+		}
+
+		py->count++;
+		px->AddTrailer(py);
+
+		// здесь мы создали два узла, хранятся указатель на них. 
+		// пэигрек обращается в кант и изменяют его а трейлер изменяет
+		// трейлеры у икс
+
+		cout << "vvedi x,y: ";
+		cin >> x >> y;
+	}
+	return n; // вернет кол-во вершин
+}
+
+void Lider::SortLider(Lider& newLD)
+{
+	Uzel *p, *q;
+	while (!(this->Empty())) // пока не пусто
+	{
+		p = this->Find_count(0); // идет по списку, находит нулевой - возвращает указатель
+		this->Exclude(p);
+		newLD.Add_to_tail(p);
+		//cout << "VAlUE=" << p->key << endl;
+		p->ReduceCount();
+	}
+	q = newLD.head->next; // направили на реальную голову
+	while (q != 0)
+	{
+		q->IncreaseCount();
+		q = q->next;
+	}
+}
+
+void Lider::clear()
+{
+	Uzel*ptr = head->next;
+	while (ptr != 0)
+	{
+		//Uzel* tmp = ptr;
+		Del(ptr); ptr = head->next;
+		//ptr = ptr->next;
+		//delete tmp;
+	}
+}
+
+
+bool Lider::Empty()
+{
+	return head->next == 0;
+}
+
+
+void main()
+{
+	int n, *res;
+	Lider LD, newLD;
+	n = LD.FormLider();
+	res = new int[n];
+
+	//print_List(LD.head, n);
+
+	LD.SortLider(newLD); // список лд стал пустым, а нью заполнился
+	Uzel *p = newLD.head->next;
+
+	int i = 0;
+	while (p != 0)
+	{
+		res[i] = p->key;
+		p = p->next;
+		i++;
+	}
+	cout << "result";
+	for (i = 0; i < n; i++)
+		cout << res[i] << ' ';
+
+	delete[] res;
+
+	//newLD.clear();
+	_getch();
+}
