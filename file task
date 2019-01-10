@@ -1,0 +1,176 @@
+#include "pch.h"
+
+#include "stdio.h."
+
+#include <iostream>
+#include "conio.h"
+
+
+//
+// USE <cstdio.h>
+//                       FILE
+//   = Object containing information to control a stream
+//   = Object type that identifies a stream and contains 
+// the information needed to control it, including a pointer
+// to its buffer, its position indicator and all its state 
+// indicators.
+
+// FILE objects are usually created by a call to
+// either fopen or tmpfile, which both return a pointer
+// to one of these objects.
+
+// The content of a FILE object is not meant to be
+// accessed from outside the functions of the <cstdio> 
+// and <cwchar> headers; 
+
+// Its memory allocation is automatically managed :
+// it is allocated by either fopen or tmpfile, 
+// and it is the responsibility of the library to 
+// free the resources once either the stream has been closed
+// using fclose or the program terminates normally.
+//
+// On inclusion of the <cstdio> header file, three objects
+// of this type are automatically created, and pointers to 
+// them are declared : stdin, stdout and stderr, associated 
+// with the standard input stream, standard output stream and
+// standard error stream, respectively.
+
+void soooo_quickly(int *a, int n)
+{
+	int l = 0; // left border
+	int r = n - 1; // right border
+	int x = a[(l + r) / 2]; // эталонный элемент
+
+	if (l >= r)
+	{
+		return;
+	}
+	while (l < r)
+	{
+
+		while (a[l] < x)
+		{
+			l++;
+		}
+		while (a[r] > x)
+		{
+			r--;
+		}
+		if (l <= r)
+		{
+			int var = a[l];
+			a[l] = a[r];
+			a[r] = var;
+			l++;
+			r--;
+		}
+	}
+
+	if (r > 0) // рекурсивный вызов сортировки для левой части
+	{
+		soooo_quickly(a, r + 1);
+	}
+
+	if (l < n) // рекурсивный вызов сортировки для правой части
+	{
+		soooo_quickly(a + l, n - l);
+	}
+
+}
+
+
+
+//name – имя создаваемого файла, 
+//n – количество чисел, d – диапазон
+void CreateFile(const char* name, int n, int d)
+{
+	int *a = new int[n];
+	for (int i = 0; i < n; i++)
+	{
+		a[i] = rand() % d;
+	}
+	
+	soooo_quickly(a, n);
+	
+	/*for (int i = 0; i < n; i++)
+		std::cout << a[i] << ' ';*/
+
+	FILE* f;
+	errno_t err;
+	err = fopen_s(&f, name, "w");
+	if (f == nullptr)
+	{
+		puts("error opening file in CreateFile");
+		_getch();
+	}
+	else
+	{
+		for (int i = n-1; i >= 0; i--)
+		{
+			int x = a[i];
+			fprintf(f, "%d ", x);
+		}
+		fclose(f);
+	}
+}
+
+void PrintFile(const char* name)
+{
+	int x;
+	FILE* f;
+	errno_t err;
+	err = fopen_s(&f, name, "r");
+	if (f == nullptr)
+	{
+		puts("error opening file in PrintFile");
+		_getch();
+	}
+	else
+	{
+		fscanf_s(f, "%d", &x);
+		while (!feof(f))
+		{
+			printf("%d", x);
+			fscanf_s(f, "%d", &x);
+		}
+		fclose(f);
+	}
+}
+
+
+void main()
+{
+	setlocale(LC_ALL, "Russian");
+	int n, d, x1;
+	puts("введите число элементов файла n:");
+	scanf_s("%d", &n);
+	puts("введите диапазон элементов файла d:");
+	scanf_s("%d", &d);
+	CreateFile("file.txt", n, d);
+	puts("файл случайных чисел:");
+	PrintFile("file.txt");
+	puts("");
+	FILE* f;
+	errno_t err;
+	err = fopen_s(&f, "file.txt", "r");
+	FILE* g;
+	errno_t err2;
+	err2 = fopen_s(&g, "file2.txt", "w");
+	if (f == nullptr || g == nullptr)
+	{
+		puts("error opening file");
+		_getch();
+		exit(-1);
+	}
+	fscanf_s(f, "%d", &x1);
+	while (!feof(f))
+	{
+		if (x1 % 2 != 0) fprintf(g, "%d ", x1);
+		fscanf_s(f, "%d", &x1);
+	}
+	_fcloseall();
+	puts("файл нечетных чисел:");
+	PrintFile("file2.txt");
+
+	_getch();
+}
