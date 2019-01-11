@@ -138,39 +138,47 @@ void PrintFile(const char* name)
 }
 
 
+void choose_odd(const char* name1, const char* name2)
+{
+FILE* f;
+errno_t err;
+err = fopen_s(&f, "file.txt", "r");
+FILE* g;
+errno_t err2;
+err2 = fopen_s(&g, "file2.txt", "w");
+if (f == nullptr || g == nullptr)
+{
+	puts("error opening file");
+	_getch();
+	exit(-1);
+}
+int x1;
+fscanf_s(f, "%d ", &x1);
+while (!feof(f))
+{
+	if (x1 % 2 != 0)
+	{
+		fprintf(g, "%d ", x1);
+	}
+	fscanf_s(f, "%d ", &x1);
+}
+_fcloseall();
+}
+
 void main()
 {
 	setlocale(LC_ALL, "Russian");
-	int n, d, x1;
-	puts("введите число элементов файла n:");
+	int n, d;
+	puts("input n:");
 	scanf_s("%d", &n);
-	puts("введите диапазон элементов файла d:");
+	puts("input d:");
 	scanf_s("%d", &d);
 	CreateFile("file.txt", n, d);
-	puts("файл случайных чисел:");
+	puts("file with random numbers:");
 	PrintFile("file.txt");
 	puts("");
-	FILE* f;
-	errno_t err;
-	err = fopen_s(&f, "file.txt", "r");
-	FILE* g;
-	errno_t err2;
-	err2 = fopen_s(&g, "file2.txt", "w");
-	if (f == nullptr || g == nullptr)
-	{
-		puts("error opening file");
-		_getch();
-		exit(-1);
-	}
-	fscanf_s(f, "%d", &x1);
-	while (!feof(f))
-	{
-		if (x1 % 2 != 0) fprintf(g, "%d ", x1);
-		fscanf_s(f, "%d", &x1);
-	}
-	_fcloseall();
-	puts("файл нечетных чисел:");
+	choose_odd("file.txt", "file2.txt");
+	puts("file with odd numbers:");
 	PrintFile("file2.txt");
-
 	_getch();
 }
