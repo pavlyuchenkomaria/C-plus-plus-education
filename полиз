@@ -1,0 +1,445 @@
+
+#include "pch.h"
+#include <iostream>
+#include <cctype> // for checking ABC
+#include <cstdlib> // for invert from string to number
+#include <sstream>
+#include <string.h>
+
+#define THROW_IF(val) if (val) std::cout << "error in " << __FUNCTION__ << std::endl;
+
+using namespace std;
+
+class Usel
+{
+	int key;
+	Usel *next; // тип узел по аналогии с бинарным деревом
+public:
+	Usel();
+	int &Key();
+	Usel*& Next();
+};
+
+Usel::Usel()
+{
+	key = 0;
+	next = nullptr;
+}
+
+int& Usel::Key()
+{
+	return key;
+}
+
+Usel*& Usel::Next()
+{
+	return next;
+}
+
+class Stack
+{
+	Usel *head;
+public:
+	Stack();
+	~Stack();
+	void Push(int k);
+	int Pop();
+	int Top();
+	bool Empty();
+	void Clear();
+
+	void PrintStack();
+
+	const int ERROR_VALUE = -1;
+};
+
+Stack::Stack()
+{
+	head = nullptr;
+}
+
+Stack::~Stack()
+{
+	delete head;
+}
+
+void Stack::Push(int k)
+{
+	if (head == nullptr)
+	{
+		head = new Usel;
+		head->Key() = k;
+		head->Next() = nullptr;
+		return;
+	}
+
+	Usel *p = head; 
+
+	Usel *temp;
+	temp = new Usel;
+	temp->Key() = k;
+	temp->Next() = nullptr;
+
+	while (p->Next() != nullptr)
+	{
+		p = p->Next();
+	}
+	p->Next() = temp;
+}
+
+int Stack::Pop()
+{
+	if (Empty())
+	{
+		cout << "your stack is empty";
+		return -1;
+	}
+	if (head->Next() == nullptr)
+	{
+		int const pop1 = head->Key();
+		Clear();
+		return pop1;
+	}
+	Usel *p = head;
+	Usel *p1 = p;
+	while (p->Next() != nullptr) // выхожу на последнем
+	{
+		p = p->Next();
+	}
+	int const pop2 = p->Key();
+
+	while (p1->Next()->Next() != nullptr) // выхожу на предпоследнем
+	{
+		p1 = p1->Next();
+	}
+	p1->Next() = nullptr;
+	delete p;
+	return pop2;
+}
+
+int Stack::Top()
+{
+	if (Empty())
+	{
+		cout << "your stack is empty";
+		return -1;
+	}
+	Usel *p1 = head;
+	while (p1->Next() != nullptr) 
+	{
+		p1 = p1->Next();
+	}
+	return p1->Key();
+}
+
+bool Stack::Empty()
+{
+	return head == nullptr;
+}
+
+void Stack::Clear()
+{
+	Usel *p = head;
+
+	while (p->Next() != nullptr) 
+	{
+		Usel *p1 = p->Next();
+		delete p;
+		p = p1;
+	}
+
+	if (head->Next() == nullptr)
+	{
+		delete head;
+	}
+
+	head = nullptr;
+}
+
+void Stack::PrintStack()
+{
+	for (Usel* p = head; p != nullptr; p = p->Next())
+	{
+		cout << p->Key() << ' ';
+	}
+}
+
+// проверка, является ли символ цифрой или буквой
+bool  Digit(char ch)
+{ 
+	return (('0' <= ch && ch <= '9')||(isalpha(ch)));
+}
+
+// определение приоритета знака
+int Prioritet(char s)
+{
+	switch (s)
+	{
+	case '(': return 0;
+	case '+': return 1;
+	case '-': return 1;
+	case '*': return 2;
+	case '/': return 2;
+	}
+}
+
+// unit tests
+
+void can_add_one_element_to_stack_test() {
+	Stack s;
+	s.Push(3);
+	s.Push(8);
+	//s.PrintStack();
+	cout << s.Pop();
+	cout << s.Pop();
+	//s.Pop();
+	//THROW_IF(8 != s.Pop());
+}
+
+void stack_property_test() {
+	Stack s;
+
+	s.Push(1);
+	s.Push(2);
+	s.Push(3);
+
+	THROW_IF(3 != s.Top());
+	THROW_IF(3 != s.Pop());
+
+	THROW_IF(2 != s.Top());
+	THROW_IF(2 != s.Pop());
+
+	THROW_IF(1 != s.Top());
+	THROW_IF(1 != s.Pop());
+}
+
+void can_clear_stack_test() {
+	Stack s;
+
+	s.Push(1);
+	s.Push(2);
+	s.Push(3);
+
+	THROW_IF(s.Empty());
+
+	s.Clear();
+
+	THROW_IF(!s.Empty());
+}
+
+void cannot_get_element_from_empty_set() {
+	Stack s;
+	THROW_IF(!s.Empty()); // ошибка, если он не пуст
+
+	THROW_IF(s.ERROR_VALUE != s.Top()); // если верхний элемент не -1 = ошибка
+	THROW_IF(s.ERROR_VALUE != s.Pop());
+}
+
+void push_1000_items_to_stack_test() {
+	int number_of_items = 1000;
+	Stack s;
+
+	for (int current_item = 0; current_item < number_of_items; current_item++) {
+		s.Push(current_item);
+	}
+
+	for (int current_item = number_of_items - 1; current_item >= 0; current_item--) {
+		THROW_IF(current_item != s.Top());
+		THROW_IF(current_item != s.Pop());
+	}
+
+	THROW_IF(!s.Empty());  
+}
+
+void can_pop_one_item_test() {
+	Stack s;
+	THROW_IF(!s.Empty());
+
+	s.Push(1);
+
+	THROW_IF(s.Empty());
+
+	THROW_IF(1 != s.Top());
+	THROW_IF(1 != s.Pop());
+
+	THROW_IF(!s.Empty()); 
+}
+
+
+void main()
+{
+	// unit tests for stack
+	/*can_add_one_element_to_stack_test();
+	stack_property_test();
+	can_clear_stack_test();
+	cannot_get_element_from_empty_set();
+	push_1000_items_to_stack_test();
+	can_pop_one_item_test();
+	system("PAUSE");*/
+
+
+	char s[80], p[80], ch, sp = ' ';
+	//s – исходная формула, p - ПОЛИЗ
+	Stack Znak, Prior;
+	int i, j, t, l_v;
+	setlocale(LC_ALL, "Russian");
+	cout<< "input formula, if you want to use letters, then use var0, var1, var2...:" << endl;    
+	gets_s(s);
+	cout << "input number of letter values:";
+	cin >> l_v;
+	int value;
+	int *var = new int[10];
+	for (int k = 0; k < l_v; k++)
+	{
+		cout << "input var" << k << " ";
+		cin >> value;
+		var[k] = value;
+	}
+	//формирования полиза
+	for (i = j = 0; s[i]; i++) // add {} for 'for'
+	{
+		if (Digit(s[i]))
+		{ 
+			p[j] = s[i];
+			j++;
+			if (!Digit(s[i+1])) // добавили проверку
+				                 // "если след знак не цифра,
+								  // добавить в полиз пробел"
+			{
+				p[j] = sp;
+				j++;
+			}
+		}
+		else  if (Znak.Empty() || s[i] == '(')
+		{
+			Znak.Push(s[i]);
+			Prior.Push(Prioritet(s[i]));
+		}
+		else  if (s[i] == ')') 
+		{
+			while (Znak.Top() != '(')
+			{
+				p[j] = Znak.Pop();
+				t = Prior.Pop();
+				j++;
+				p[j] = sp;  
+				j++; 
+			}
+			ch = Znak.Pop();
+			t = Prior.Pop();
+		}
+		else if (Prior.Top() < Prioritet(s[i]))
+		{
+			Znak.Push(s[i]);
+			Prior.Push(Prioritet(s[i]));
+		}
+		else
+		{
+			while (!Znak.Empty() && Prior.Top() >= Prioritet(s[i]))
+			{
+				p[j] = Znak.Pop();
+				t = Prior.Pop();
+				j++;
+				p[j] = sp; 
+				j++; 
+			}
+			Znak.Push(s[i]);
+			Prior.Push(Prioritet(s[i]));
+		}
+	}
+	while (!Znak.Empty())
+	{
+		p[j] = Znak.Pop();
+		t = Prior.Pop();
+		j++;
+		p[j] = sp; 
+		j++; 
+	}
+	p[j] = '\0';
+	cout << "reverse polish notation: " << p << endl;
+
+	// unit tests for writing poliz
+
+	/* 5*(8+7/2)-15+6*(6/8)+46-5*8-6 //CORRECT
+	THROW_IF((strcmp(p, "5872/+*15-668/*+46+58*-6-")) != 0); */
+
+	/* x+y-f*5-666*888+f*(5+6) //CORRECT
+	THROW_IF((strcmp(p, "xy+f5*-666888*-f56+*+")) != 0); */
+
+	/* fjf*88/9-564+df+6-99  //CORRECT
+	THROW_IF((strcmp(p, "fjf88*9/564-df+6+99-")) != 0); */
+	//cout << 3 / 10;
+
+	//invert letters into numbers
+	int index;
+	char p1[80];
+	for (i = 0, j = 0; p[i], p1[j]; )
+	{
+		if (p[i] == 'v')
+		{
+			index = p[i + 3] - '0';
+			stringstream strs;
+			strs << var[index];
+			string temp_str = strs.str();
+			char* char_type = (char*)temp_str.c_str();
+			for (int b=0; char_type[b];b++)
+			{
+				p1[j] = char_type[b];
+				j++;
+			}
+			i += 4;
+			j++;
+		}
+		p1[j] = p[i];
+		i++;
+		j++;
+	}
+
+	Stack Calc;
+	int z;
+	for (i = 0; p1[i]; )
+	{
+		while (p1[i] && Digit(p1[i]))
+		{
+			char *st = new char[10];
+			for (int k = 0; k < 10; k++)
+			{
+				st[k] = ' ';
+			}
+			int j = 0;
+			while (p1[i] != sp)
+			{
+				st[j] = p1[i];
+				i++;
+				j++;
+			}
+			int num = atoi(st);
+			Calc.Push(num);
+			i++;
+			delete st;
+		}
+		if (p1[i]) 
+		{
+			int x, y;
+			y = Calc.Pop();
+			x = Calc.Pop();
+			switch (p1[i])
+			{
+			case '+': z = x + y; break;
+			case '-': z = x - y; break;
+			case '*': z = x * y; break;
+			case '/': z = x / y; break;
+			case '(': cout << "потеряна )"; exit(-1);
+			}
+			Calc.Push(z);
+			i++;
+		}
+		i++;
+	}
+	z = Calc.Pop();
+	cout << z;
+
+
+	// unit tests for counting poliz 
+	/*5+6-9+15+2*(4-1)*/
+}
