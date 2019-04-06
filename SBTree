@@ -1,0 +1,484 @@
+#include "pch.h"
+#include <iostream>
+
+// 1. странный вывод дерева
+// 2. выбрасывает функцию Clear(), пытаемся залезть не туда
+// 3. уточнить, каким должен быть вывод, если тип Node (адрес/цифорка)
+
+
+class Node
+{
+	int key;
+	Node *left, *right, *parent; //предки и потомки
+public:
+	Node(int k = 0, Node *L = nullptr, Node *R = nullptr, Node *P = nullptr) //- конструктор
+	{
+		key = k;
+		left = L;
+		right = R;
+		parent = P;
+	}
+	int Key() { return key; }
+	//чтобы измен¤ть приватные член данные, дл¤ этого объ¤вл¤ем дерево другом дл¤ узла
+	friend class SBTree;
+	
+};
+
+class SBTree
+{
+	Node *root;
+	// функци¤, создающа¤ копию дерева, так как нам нужна рекурси¤, которую мы не можем вызвать в конструкторе - у него нет ретурна
+	void Copy(Node *q, int k, Node *p); // копирует дерево с корнем q, p - предок корн¤ нового дерева, k - флаг, если =0 - копируем левое поддерево, =1 - копируем правое поддерево
+public:
+	SBTree() { root = nullptr; }
+	SBTree(int n); // дерево из n узлов, ключи случайные
+	SBTree(int *a, int n);  // // дерево из n узлов, а - массив ключей
+	SBTree(SBTree&); //copy
+	~SBTree();
+
+	SBTree & operator = (SBTree); // оператор присвоени¤
+	// функци¤, создающа¤ копию дерева, нам нужна рекурси¤, которую мы не можем вызвать в конструкторе - у него нет ретурна
+
+	void CreateRoot(int k);
+	void Add(int k, Node *p); // добавление узла с ключом k после узла p
+	void Del(Node*p); // удаление узла p
+	void Del(); //удаление корн¤ (самой верхушки), а же схема, но нет родителей, придумать соотношение p-t (только с потомками)
+
+	// +++ обходы дерева:
+	// будет вывод на экран // p - вершина 
+	void TreeTravel_LCR(Node *p); // лево-корень-право
+	void TreeTravel_LRC(Node *p); // лево-право-корень
+	void TreeTravel_RLC(Node *p); // право-лево-корень
+
+	//нахождение узла с ключом k в дереве с вершиной p (вернем указатель на этот узел)
+	Node *FindKey(Node *p, int k); // 
+	//max - в дереве с вершиной p
+	Node *FindMax(Node *p);
+	//min - в дереве с вершиной p
+	Node *FindMin(Node *p);
+
+	// нахождение высоты в дереве с вершиной p
+	int FindHigh(Node *p);
+
+	// вывод на консоль, где k - уровень (будет боком)
+	void PrintTree(int k, Node *p);
+
+	// извлечение приватного ч-д
+	Node *Root()
+	{
+		return root;
+	}
+
+		// очистка содержимого, либо все, вроме корн¤, либо все
+	void Clear();
+
+};
+
+
+
+SBTree::SBTree(int n)
+{
+	if (n == 0)
+	{
+		root = nullptr;
+	}
+	else
+	{
+		root = new Node(rand() % 50);
+		for (int i = 1; i < n; i++)
+		{
+			Add(rand() % 50, root);
+		}
+	}
+}
+
+SBTree::SBTree(int *a, int n) //ne uverena
+{
+	if (n == 0)
+	{
+		return;
+	}
+	root = new Node(rand() % 50);
+	for (int i = 0; i < n; i++)
+	{
+		Add(a[i], root);
+	}
+}
+
+SBTree::SBTree(SBTree& T)
+{
+	if (T.root == nullptr)
+	{
+		root = nullptr;
+	}
+	else
+	{
+		root = new Node(T.root->key);
+		Copy(T.root->left, 0, root);
+		Copy(T.root->right, 1, root);
+	}
+}
+
+SBTree::~SBTree()
+{
+	if (root != nullptr)
+	{
+		Del();
+	}
+}
+
+void SBTree::CreateRoot(int k)
+{
+	root = new Node(k);
+}
+
+void SBTree::Add(int k, Node *p)
+{
+	Node *q = new Node(k);
+	if (k < p->key)
+	{
+		if (p->left == nullptr)
+		{
+			p->left = q;
+			q->parent = p;
+		}
+		else Add(k, p->left);
+	}
+	else
+	{
+		if (p->right == nullptr)
+		{
+			p->right = q;
+			q->parent = p;
+		}
+		else Add(k, p->right);
+	}
+}
+
+void SBTree::Del(Node*q) //p-parent
+{
+	Node *p = q->parent;
+	// нет 2 потомков
+	if (q->left == nullptr && q->right == nullptr)
+	{
+		if (p->left == q)
+		{
+			p->left = nullptr;
+		}
+		else
+		{
+			q->right = nullptr;
+		}
+		delete q;
+		return;
+	}
+
+	// нет left потомка
+	if (q->left == nullptr && q->right != nullptr)
+	{
+		if (p->left == q)
+		{
+			p->left = q->right;
+		}
+		else
+		{
+			p->right = q->right;
+		}
+		q->right->parent = p;
+		delete q;
+		return;
+	}
+
+	// нет right потомка
+	if (q->left != nullptr && q->right == nullptr)
+	{
+		if (p->left == q)
+		{
+			p->left = q->left;
+		}
+		else
+		{
+			p->right = q->left;
+		}
+		q->left->parent = p;
+		delete q;
+		return;
+	}
+
+	// есть оба потомка
+	if (q->left != nullptr && q->right != nullptr)
+	{
+		Node *t = q->left;
+		if (t->right == nullptr)
+		{
+			if (p->left == q)
+			{
+				p->left = t;
+			}
+			else
+			{
+				p->right = t;
+			}
+			t->parent = p;
+			t->right = q->right;
+			q->right->parent = t;
+		}
+		else
+		{
+			while (t->right != nullptr)
+			{
+				t = t->right;
+			}
+			t->parent->right = t->left;
+			if (t->right != nullptr) // разве вайл не ликвидирует этот кейс?
+			{
+				t->right->parent = t->parent;
+			}
+			if (p->left == q)
+			{
+				p->left = t;
+			}
+			else
+			{
+				p->right = t;
+			}
+			t->parent = p;
+			t->left = q->left;
+			t->right = q->right;
+			q->left->parent = t;
+			q->right->parent = t;
+		}
+		delete q;
+	}
+
+}
+
+void SBTree::Del() // иде¤  : переписать предыдущую с учетом того, что нет родител¤, т.е. удал¤ем верхушку
+{
+	Node *q = root;
+	// нет обоих потомков
+	if (q->left == nullptr && q->right == nullptr)
+	{
+		delete q;
+		return;
+	}
+
+	// нет left потомка
+	if (q->left == nullptr && q->right != nullptr)
+	{
+		q->right->parent = nullptr;
+		delete q;
+		return;
+	}
+
+	// нет right потомка
+	if (q->left != nullptr && q->right == nullptr)
+	{
+		q->left->parent = nullptr;
+		delete q;
+		return;
+	}
+
+	// есть оба потомка
+	if (q->left != nullptr && q->right != nullptr)
+	{
+		Node *t = q->left;
+		if (t->right == nullptr)
+		{
+			t->parent = nullptr;
+			t->right = q->right;
+			q->right->parent = t;
+		}
+		else
+		{
+			while (t->right != nullptr)
+			{
+				t = t->right;
+			}
+			t->parent->right = t->left;
+			/*if (t->right != nullptr) // разве вайл не ликвидирует этот кейс?
+			{
+				t->right->parent = t->parent;
+			}*/
+			t->parent = nullptr;
+			t->left = q->left;
+			t->right = q->right;
+			q->left->parent = t;
+			q->right->parent = t;
+		}
+		delete q;
+	}
+}
+
+void SBTree::PrintTree(int k, Node *p) // k - отступ от кра¤ консоли или уровень (берем отступ 5)
+{
+	//выход из рекурсии
+	if (p == nullptr)
+	{
+		return;
+	}
+	PrintTree(k + 5, p->right);
+	for (int i = 0; i < k; i++)
+	{
+		std::cout << ' ';
+	}
+	std::cout << p->key << std::endl;
+	PrintTree(k + 5, p->left);
+}
+void SBTree::TreeTravel_LCR(Node *p)
+{
+	//выход из рекурсии
+	if (p == nullptr) return;
+	TreeTravel_LCR(p->left);
+	std::cout << p->key << ' ';
+	TreeTravel_LCR(p->right);
+}
+
+void SBTree::TreeTravel_LRC(Node *p)// лево-право-корень
+{
+	if (p == nullptr) return;
+	TreeTravel_LRC(p->left);
+	TreeTravel_LRC(p->right);
+	std::cout << p->key << ' ';
+}
+void SBTree::TreeTravel_RLC(Node *p) // право-лево-корень
+{
+	if (p == nullptr) return;
+	TreeTravel_RLC(p->right);
+	TreeTravel_RLC(p->left);
+	std::cout << p->key << ' ';
+}
+
+void SBTree::Copy(Node *q, int k, Node *p)
+{
+	if (q == nullptr)
+	{
+		return;
+	}
+	Node *t = new Node(q->key);
+	t->parent = p;
+	if (k == 0) p->left = t;
+	else p->right = t;
+	Copy(q->left, 0, t);
+	Copy(q->right, 1, t);
+}
+
+//нахождение узла с ключом k в дереве с вершиной p (вернем указатель на этот узел)
+Node * SBTree::FindKey(Node *p, int k) // 
+{
+	if (p == nullptr || p->key == k)
+	{
+		return p;
+	}
+	if (p->left != nullptr)
+	{
+		FindKey(p->left, k);
+	}
+	if (p->right != nullptr)
+	{
+		FindKey(p->right, k);
+	}
+	
+}
+
+Node * SBTree::FindMax(Node *p)
+{
+	if (p == nullptr)
+	{
+		return nullptr;
+	}
+	while (p->right != nullptr)
+	{
+		p = p->right;
+	}
+	return p;
+}
+
+Node * SBTree::FindMin(Node *p)
+{
+	if (p == nullptr)
+	{
+		return nullptr;
+	}
+	while (p->left != nullptr)
+	{
+		p = p->left;
+	}
+	return p;
+}
+
+int SBTree::FindHigh(Node *p)
+{
+	if (p == nullptr)
+	{
+		return 0;
+	}
+	int left_high = 1;
+	int right_high = 1;
+	while (p->left != nullptr)
+	{
+		p = p->left;
+		left_high++;
+	}
+	while (p->right != nullptr)
+	{
+		p = p->right;
+		right_high++;
+	}
+	if (left_high >= right_high)
+	{
+		return left_high;
+	}
+	return right_high;
+}
+
+void SBTree::Clear()
+{
+	if (root == nullptr)
+	{
+		return;
+	}
+	
+	Del(root);
+
+	// проблема: идет попытка удалить то, чего нет (связано с узлом p)
+	
+	if (root != nullptr)
+	{
+		Del(root->left);
+	
+		Del(root->right);
+	}
+}
+
+void main()
+{
+	int n;
+	std::cout << "input n for building a tree: ";
+	std::cin >> n;
+	SBTree SBTree(n);
+	std::cout << "Here is your SB Tree: " << std::endl;
+	SBTree.PrintTree(0, SBTree.Root());
+	std::cout << std::endl;
+	
+	// идет возврат адресов, а что нужно?
+	std::cout << "Here is your SB Tree Max: " << SBTree.FindMax(SBTree.Root()) << std::endl;
+	std::cout << "Here is your SB Tree Min: " << SBTree.FindMin(SBTree.Root()) << std::endl;
+	//
+	std::cout << "Here is your SB Tree High: " << SBTree.FindHigh(SBTree.Root()) << std::endl;
+	//
+	std::cout << "Here is your SB Tree Find Key: " << SBTree.FindKey(SBTree.Root(),0) << std::endl;
+	//
+	std::cout << "Here is your SB Tree TreeTravel_LCR: ";
+	SBTree.TreeTravel_LCR(SBTree.Root());
+	std::cout << std::endl;
+	std::cout << "Here is your SB Tree TreeTravel_LRC: ";
+	SBTree.TreeTravel_LRC(SBTree.Root());
+	std::cout << std::endl;
+	std::cout << "Here is your SB Tree TreeTravel_RLC: ";
+	SBTree.TreeTravel_RLC(SBTree.Root());
+	std::cout << std::endl;
+	//
+	// SBTree.Clear();
+	// SBTree.PrintTree(0, SBTree.Root());
+}
